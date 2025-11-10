@@ -1,11 +1,13 @@
 ﻿using OpenQA.Selenium;
+using System.Runtime.CompilerServices;
+
+[assembly: InternalsVisibleTo("SwagLabs.Tests")]
 
 namespace PageObjects.src
 {
     internal class LoginPage
     {
         private readonly IWebDriver? webDriver;
-        private readonly int timeout = 5;
         private string Url { get; } = "https://www.saucedemo.com";
         private readonly By userNameBy = By.CssSelector("[data-test='username']");
         private readonly By userPasswordBy = By.CssSelector("[data-test='password']");
@@ -18,61 +20,115 @@ namespace PageObjects.src
             this.webDriver = webDriver ?? throw new ArgumentNullException(nameof(webDriver));
         }
 
-        public LoginPage OpenPage()
+        public LoginPage OpenLoginPage()
         {
-            this.webDriver!.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(timeout);
             this.webDriver!.Navigate().GoToUrl(Url);
-            this.webDriver!.Manage().Window.Maximize();
 
             return this;
         }
 
-        public void FillLogin(string userName = "standard_user", string userPassword = "secret_sauce")
+        public LoginPage FillUserName(string userName)
         {
             var userNameInput = this.webDriver!.FindElement(userNameBy);
             userNameInput.Clear();
             userNameInput.SendKeys(userName);
 
+            return this;
+        }
+
+        public LoginPage FillUserPassword(string userPassword)
+        {
             var userPasswordInput = this.webDriver!.FindElement(userPasswordBy);
             userPasswordInput.Clear();
             userPasswordInput.SendKeys(userPassword);
 
-            var loginButton = this.webDriver!.FindElement(loginBy);
-            loginButton.Click();
+            return this;
         }
 
-        public void ValidateLogin()
+        public LoginPage ClearUserName()
         {
-            var errorMessage = this.webDriver!.FindElement(errorMsgBy);
+            this.webDriver!.FindElement(userNameBy).Clear();
 
+            return this;
+        }
+
+        public LoginPage ClearUserPassword()
+        {
+            this.webDriver!.FindElement(userPasswordBy).Clear();
+
+            return this;
+        }
+
+        public LoginPage FillLogin(string userName, string userPassword)
+        {
+            this.FillUserName(userName);
+            this.FillUserPassword(userPassword);
+
+            return this;
+        }
+
+        public LoginPage ClearLogin()
+        {
+            this.ClearUserName();
+            this.ClearUserPassword();
+
+            return this;
+        }
+
+        public LoginPage ValidateLogin()
+        {
             string requiredUsername = "Epic sadface: Username is required";
             string requiredPassword = "Epic sadface: Password is required";
             string wrongUser = "Epic sadface: Username and password do not match any user in this service";
 
-            if (!errorMessage.Displayed)
+            var errorMessage = this.webDriver!.FindElements(errorMsgBy).FirstOrDefault();
+
+            if (errorMessage is null)
             {
-                return;
+                return this;
             }
 
             if (errorMessage.Text.Equals(requiredUsername))
             {
-                throw new ArgumentException(requiredUsername);
+                ErrorMsg(requiredUsername);
             }
 
             if (errorMessage.Text.Equals(requiredPassword))
             {
-                throw new ArgumentException(requiredPassword);
+                ErrorMsg(requiredPassword);
             }
 
             if (errorMessage.Text.Equals(wrongUser))
             {
-                throw new ArgumentException(wrongUser);
+                ErrorMsg(wrongUser);
             }
+
+            static void ErrorMsg(string msg)
+            {
+                throw new InvalidOperationException(msg);
+            }
+
+            return this;
         }
 
-        public bool IsCorrectLogin()
+        public LoginPage ClickLogin()
         {
-            return this.webDriver!.FindElement(footerBy).Displayed;
+            var loginButton = this.webDriver!.FindElement(loginBy);
+            loginButton.Click();
+
+            return this;
+        }
+
+        public bool CheckLoginResult()
+        {
+            var footer = this.webDriver!.FindElements(footerBy).FirstOrDefault()?.Displayed;
+
+            if (footer is null || footer is false)
+            {
+                return false;
+            }
+
+            return true;
         }
     }
 }
