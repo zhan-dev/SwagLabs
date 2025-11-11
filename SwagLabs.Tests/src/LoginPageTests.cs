@@ -50,7 +50,7 @@ namespace SwagLabs.Tests.src
             // Assert
             this.logger.Result($"UC01: expected 'Epic sadface: Username is required', was: '{loginPage.ErrorMsg}'");
             log.Warn($"UC01: expected 'Epic sadface: Username is required', was: '{loginPage.ErrorMsg}'");
-            Assert.Equal("Epic sadface: Username is required", loginPage.ErrorMsg);
+            loginPage.ErrorMsg.Should().Be("Epic sadface: Username is required");
         }
 
         [Theory]
@@ -73,7 +73,7 @@ namespace SwagLabs.Tests.src
             // Assert
             this.logger.Result($"UC02: expected 'Epic sadface: Password is required', was: '{loginPage.ErrorMsg}'");
             log.Warn($"UC02: expected 'Epic sadface: Password is required', was: '{loginPage.ErrorMsg}'");
-            Assert.Equal("Epic sadface: Password is required", loginPage.ErrorMsg);
+            loginPage.ErrorMsg.Should().Be("Epic sadface: Password is required");
         }
 
         [Theory]
