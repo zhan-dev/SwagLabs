@@ -22,7 +22,6 @@ namespace SwagLabs.Tests.src
             this.driver = BrowserDriver.CreateWebDriver(BrowserType.GoogleChrome);
             this.logger = new TestLogger(output);
 
-            // Подключаем кастомный appender
             var hierarchy = (log4net.Repository.Hierarchy.Hierarchy)LogManager.GetRepository();
             var appender = new XUnitOutputAppender(output);
             appender.Layout = new log4net.Layout.PatternLayout("%date %-5level %logger - %message%newline");
@@ -30,8 +29,9 @@ namespace SwagLabs.Tests.src
             hierarchy.Configured = true;
         }
 
-        [Fact]
-        public void UC01_FillLogin_WithEmptyCredentials_UserNameIsRequired()
+        [Theory]
+        [InlineData("AnyUC01", "credentialsUC01")]
+        public void UC01_FillLogin_WithEmptyCredentials_UserNameIsRequired(string userName, string password)
         {
             // Arrange
             this.logger.Step("UC01: Open login page");
@@ -41,7 +41,7 @@ namespace SwagLabs.Tests.src
             // Act
             this.logger.Info("UC01: Enter login and password. Clear fields. Try to login.");
             log.Debug("UC01: Enter login and password. Clear fields. Try to login.");
-            loginPage.FillLogin("AnyUC01", "credentialsUC01")
+            loginPage.FillLogin(userName, password)
                 .ClearUserName()
                 .ClearUserPassword()
                 .ClickLogin()
@@ -53,8 +53,9 @@ namespace SwagLabs.Tests.src
             Assert.Equal("Epic sadface: Username is required", loginPage.ErrorMsg);
         }
 
-        [Fact]
-        public void UC02_FillLogin_WithUserNameCredentials_PasswordIsRequired()
+        [Theory]
+        [InlineData("AnyUC02", "credentialsUC02")]
+        public void UC02_FillLogin_WithUserNameCredentials_PasswordIsRequired(string userName, string password)
         {
             // Arrange
             this.logger.Step("UC02: Open login page.");
@@ -64,7 +65,7 @@ namespace SwagLabs.Tests.src
             // Act
             this.logger.Info("UC02: Enter login and password. Clear password. Try to login.");
             log.Debug("UC02: Enter login and password. Clear password. Try to login.");
-            loginPage.FillLogin("AnyUC02", "credentialsUC02").
+            loginPage.FillLogin(userName, password).
                 ClearUserPassword()
                 .ClickLogin()
                 .ValidateIncorrectLoginData();
