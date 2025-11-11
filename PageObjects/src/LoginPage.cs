@@ -1,4 +1,5 @@
 ﻿using OpenQA.Selenium;
+using OpenQA.Selenium.Support.UI;
 using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("SwagLabs.Tests")]
@@ -13,7 +14,6 @@ namespace PageObjects.src
         private readonly By userPasswordBy = By.CssSelector("[data-test='password']");
         private readonly By loginBy = By.CssSelector("[data-test='login-button']");
         private readonly By errorMsgBy = By.CssSelector("[data-test='error']");
-        private readonly By footerBy = By.CssSelector("[data-test='footer-copy']");
         private readonly By productsPageSwagLabHeaderBy = By.CssSelector(".app_logo");
         public string? ErrorMsg { get; private set; }
         public string? ProductsPageSwagLabHeader { get; private set; }
@@ -120,14 +120,15 @@ namespace PageObjects.src
 
         public LoginPage ValidateCorrectLoginData()
         {
-            var productSwagLabHeader  = this.webDriver!.FindElements(productsPageSwagLabHeaderBy);
-            if (productSwagLabHeader is null)
+            var wait = new WebDriverWait(this.webDriver!, TimeSpan.FromSeconds(3));
+            try
             {
-                this.ProductsPageSwagLabHeader = "null";
+                var productSwagLabHeader = wait.Until(drv => drv.FindElement(productsPageSwagLabHeaderBy));
+                this.ProductsPageSwagLabHeader = productSwagLabHeader.Text;
             }
-            else
+            catch (WebDriverException ex)
             {
-                this.ProductsPageSwagLabHeader = productSwagLabHeader[0].Text;
+                this.ProductsPageSwagLabHeader = ex.Message;
             }
 
             return this;
@@ -135,22 +136,21 @@ namespace PageObjects.src
 
         public LoginPage ClickLogin()
         {
-            var loginButton = this.webDriver!.FindElement(loginBy);
-            loginButton.Click();
+            var wait = new WebDriverWait(this.webDriver!, TimeSpan.FromSeconds(3));
 
-            return this;
-        }
-
-        public bool CheckLoginResult()
-        {
-            var footer = this.webDriver!.FindElements(footerBy).FirstOrDefault()?.Displayed;
-
-            if (footer is null || footer is false)
+            try
             {
-                return false;
+                var logButton = wait.Until(x => x.FindElement(loginBy));
+                logButton.Click();
+            }
+            catch (WebDriverException ex)
+            {
+
+                this.ProductsPageSwagLabHeader = ex.Message;
+                throw new WebDriverException(this.ProductsPageSwagLabHeader);
             }
 
-            return true;
+            return this;
         }
     }
 }

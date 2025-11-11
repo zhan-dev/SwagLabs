@@ -1,7 +1,12 @@
 ﻿using CoreLayer.Enum;
 using CoreLayer.WebDriver;
+using FluentAssertions;
+using log4net;
 using OpenQA.Selenium;
 using PageObjects.src;
+using Xunit.Abstractions;
+
+[assembly: log4net.Config.XmlConfigurator(ConfigFile = "log4net.config", Watch = true)]
 
 namespace SwagLabs.Tests.src
 {
@@ -9,22 +14,42 @@ namespace SwagLabs.Tests.src
     {
         private readonly IWebDriver driver;
         private bool disposed;
+        private readonly TestLogger logger;
+        private static readonly ILog log = LogManager.GetLogger(typeof(LoginPageTests));
 
-        public LoginPageTests()
+        public LoginPageTests(ITestOutputHelper output)
         {
             this.driver = BrowserDriver.CreateWebDriver(BrowserType.GoogleChrome);
+            this.logger = new TestLogger(output);
+
+            // Подключаем кастомный appender
+            var hierarchy = (log4net.Repository.Hierarchy.Hierarchy)LogManager.GetRepository();
+            var appender = new XUnitOutputAppender(output);
+            appender.Layout = new log4net.Layout.PatternLayout("%date %-5level %logger - %message%newline");
+            hierarchy.Root.AddAppender(appender);
+            hierarchy.Configured = true;
         }
 
         [Fact]
         public void UC01_FillLogin_WithEmptyCredentials_UserNameIsRequired()
         {
             // Arrange
+            this.logger.Step("UC01: Open login page");
+            log.Info("UC01: Open login page");
             var loginPage = new LoginPage(this.driver).OpenLoginPage();
 
             // Act
-            loginPage.FillLogin("AnyUC01", "credentialsUC01").ClearUserName().ClearUserPassword().ClickLogin().ValidateIncorrectLoginData();
+            this.logger.Info("UC01: Enter login and password. Clear fields. Try to login.");
+            log.Debug("UC01: Enter login and password. Clear fields. Try to login.");
+            loginPage.FillLogin("AnyUC01", "credentialsUC01")
+                .ClearUserName()
+                .ClearUserPassword()
+                .ClickLogin()
+                .ValidateIncorrectLoginData();
 
             // Assert
+            this.logger.Result($"UC01: expected 'Epic sadface: Username is required', was: '{loginPage.ErrorMsg}'");
+            log.Warn($"UC01: expected 'Epic sadface: Username is required', was: '{loginPage.ErrorMsg}'");
             Assert.Equal("Epic sadface: Username is required", loginPage.ErrorMsg);
         }
 
@@ -32,12 +57,21 @@ namespace SwagLabs.Tests.src
         public void UC02_FillLogin_WithUserNameCredentials_PasswordIsRequired()
         {
             // Arrange
+            this.logger.Step("UC02: Open login page.");
+            log.Info("UC02: Open login page.");
             var loginPage = new LoginPage(this.driver).OpenLoginPage();
 
             // Act
-            loginPage.FillLogin("AnyUC02", "credentialsUC02").ClearUserPassword().ClickLogin().ValidateIncorrectLoginData();
+            this.logger.Info("UC02: Enter login and password. Clear password. Try to login.");
+            log.Debug("UC02: Enter login and password. Clear password. Try to login.");
+            loginPage.FillLogin("AnyUC02", "credentialsUC02").
+                ClearUserPassword()
+                .ClickLogin()
+                .ValidateIncorrectLoginData();
 
             // Assert
+            this.logger.Result($"UC02: expected 'Epic sadface: Password is required', was: '{loginPage.ErrorMsg}'");
+            log.Warn($"UC02: expected 'Epic sadface: Password is required', was: '{loginPage.ErrorMsg}'");
             Assert.Equal("Epic sadface: Password is required", loginPage.ErrorMsg);
         }
 
@@ -51,14 +85,22 @@ namespace SwagLabs.Tests.src
         public void UC03_FillLogin_WithUserNameAndPasswordCredentials_IsValidUser(string userName)
         {
             // Arrange
+            this.logger.Step("UC03: Open login page.");
+            log.Info("UC03: Open login page.");
             var loginPage = new LoginPage(this.driver).OpenLoginPage();
             string userPassword = "secret_sauce";
 
             // Act
-            loginPage.FillLogin(userName, userPassword).ClickLogin().ValidateCorrectLoginData();
+            this.logger.Info($"UC03: Enter login and password. Try to login '{userName}'.");
+            log.Debug($"UC03: Enter login and password. Try to login '{userName}'.");
+            loginPage.FillLogin(userName, userPassword)
+                .ClickLogin()
+                .ValidateCorrectLoginData();
 
             // Assert
-            Assert.Equal("Swag Labs", loginPage.ProductsPageSwagLabHeader);
+            this.logger.Result($"UC03: for {userName} expected 'Swag Labs', was: {loginPage.ProductsPageSwagLabHeader}");
+            log.Warn($"UC03: for {userName} expected 'Swag Labs', was: {loginPage.ProductsPageSwagLabHeader}");
+            loginPage.ProductsPageSwagLabHeader.Should().Be("Swag Labs");
         }
 
         public void Dispose()

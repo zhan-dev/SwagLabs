@@ -20,16 +20,16 @@ namespace CoreLayer.WebDriver
                 case BrowserType.GoogleChrome:
                     {
                         var service = ChromeDriverService.CreateDefaultService();
-                        //service.HideCommandPromptWindow = true;
 
                         var options = new ChromeOptions();
                         options.AddExcludedArgument("enable-automation");
                         options.AddArgument("--incognito");
-                        //options.AddAdditionalOption("useAutomationExtension", false);
-                        //options.AddArgument("--disable-blink-features=AutomationControlled");
+
+                        options.AddArgument("--headless");
+                        options.AddArgument("--disable-gpu");
+                        options.AddArgument("--window-size=1920,1080");
 
                         var driver = new ChromeDriver(service, options, TimeSpan.FromSeconds(5));
-                        driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(5);
                         driver.Manage().Window.Maximize();
 
                         return driver;
