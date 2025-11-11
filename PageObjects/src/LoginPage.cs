@@ -14,6 +14,9 @@ namespace PageObjects.src
         private readonly By loginBy = By.CssSelector("[data-test='login-button']");
         private readonly By errorMsgBy = By.CssSelector("[data-test='error']");
         private readonly By footerBy = By.CssSelector("[data-test='footer-copy']");
+        private readonly By productsPageSwagLabHeaderBy = By.CssSelector(".app_logo");
+        public string? ErrorMsg { get; private set; }
+        public string? ProductsPageSwagLabHeader { get; private set; }
 
         public LoginPage(IWebDriver? webDriver)
         {
@@ -47,14 +50,20 @@ namespace PageObjects.src
 
         public LoginPage ClearUserName()
         {
-            this.webDriver!.FindElement(userNameBy).Clear();
+            var userNameInput = this.webDriver!.FindElement(userNameBy);
+            userNameInput.Click();
+            userNameInput.SendKeys(Keys.Control + "a");
+            userNameInput.SendKeys(Keys.Delete);
 
             return this;
         }
 
         public LoginPage ClearUserPassword()
         {
-            this.webDriver!.FindElement(userPasswordBy).Clear();
+            var userPasswordInput = this.webDriver!.FindElement(userPasswordBy);
+            userPasswordInput.Click();
+            userPasswordInput.SendKeys(Keys.Control + "a");
+            userPasswordInput.SendKeys(Keys.Delete);
 
             return this;
         }
@@ -75,7 +84,7 @@ namespace PageObjects.src
             return this;
         }
 
-        public LoginPage ValidateLogin()
+        public LoginPage ValidateIncorrectLoginData()
         {
             string requiredUsername = "Epic sadface: Username is required";
             string requiredPassword = "Epic sadface: Password is required";
@@ -85,27 +94,40 @@ namespace PageObjects.src
 
             if (errorMessage is null)
             {
+                this.ErrorMsg = null;
                 return this;
             }
 
             if (errorMessage.Text.Equals(requiredUsername))
             {
-                ErrorMsg(requiredUsername);
+                this.ErrorMsg = requiredUsername;
+            }
+            else if (errorMessage.Text.Equals(requiredPassword))
+            {
+                this.ErrorMsg = requiredPassword;
+            }
+            else if (errorMessage.Text.Equals(wrongUser))
+            {
+                this.ErrorMsg = wrongUser;
+            }
+            else
+            {
+                this.ErrorMsg = errorMessage.Text;
             }
 
-            if (errorMessage.Text.Equals(requiredPassword))
-            {
-                ErrorMsg(requiredPassword);
-            }
+                return this;
+        }
 
-            if (errorMessage.Text.Equals(wrongUser))
+        public LoginPage ValidateCorrectLoginData()
+        {
+            var productSwagLabHeader  = this.webDriver!.FindElements(productsPageSwagLabHeaderBy);
+            if (productSwagLabHeader is null)
             {
-                ErrorMsg(wrongUser);
+                this.ProductsPageSwagLabHeader = "null";
             }
-
-            static void ErrorMsg(string msg)
+            else
             {
-                throw new InvalidOperationException(msg);
+                this.ProductsPageSwagLabHeader = productSwagLabHeader[0].Text;
             }
 
             return this;

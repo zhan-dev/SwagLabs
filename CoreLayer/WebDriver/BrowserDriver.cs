@@ -23,13 +23,13 @@ namespace CoreLayer.WebDriver
                         //service.HideCommandPromptWindow = true;
 
                         var options = new ChromeOptions();
-                        //options.AddExcludedArgument("enable-automation");
-                        //options.AddAdditionalOption("useAutomationExtension", false);
+                        options.AddExcludedArgument("enable-automation");
                         options.AddArgument("--incognito");
+                        //options.AddAdditionalOption("useAutomationExtension", false);
                         //options.AddArgument("--disable-blink-features=AutomationControlled");
 
-                        var driver = new ChromeDriver(service, options, TimeSpan.FromSeconds(10));
-                        driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
+                        var driver = new ChromeDriver(service, options, TimeSpan.FromSeconds(5));
+                        driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(5);
                         driver.Manage().Window.Maximize();
 
                         return driver;

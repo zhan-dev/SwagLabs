@@ -1,55 +1,85 @@
 ﻿using CoreLayer.Enum;
 using CoreLayer.WebDriver;
+using OpenQA.Selenium;
 using PageObjects.src;
-using System;
-using System.Runtime.CompilerServices;
-using Xunit;
-
-//string userName = "standard_user", string userPassword = "secret_sauce"
 
 namespace SwagLabs.Tests.src
 {
-    public class LoginPageTests
+    public class LoginPageTests : IDisposable
     {
+        private readonly IWebDriver driver;
+        private bool disposed;
+
+        public LoginPageTests()
+        {
+            this.driver = BrowserDriver.CreateWebDriver(BrowserType.GoogleChrome);
+        }
+
         [Fact]
         public void UC01_FillLogin_WithEmptyCredentials_UserNameIsRequired()
         {
             // Arrange
-            var chromeDriver = BrowserDriver.CreateWebDriver(BrowserType.GoogleChrome);
-            var loginPage = new LoginPage(chromeDriver).OpenLoginPage();
+            var loginPage = new LoginPage(this.driver).OpenLoginPage();
 
             // Act
-            loginPage.FillLogin("Any", "credentials").ClearLogin().ClickLogin();
+            loginPage.FillLogin("AnyUC01", "credentialsUC01").ClearUserName().ClearUserPassword().ClickLogin().ValidateIncorrectLoginData();
 
             // Assert
-            var ex = Assert.Throws<InvalidOperationException>(() => loginPage.ValidateLogin());
-            Assert.Equal("Epic sadface: Username is required", ex.Message);
+            Assert.Equal("Epic sadface: Username is required", loginPage.ErrorMsg);
         }
 
-        //[Fact]
-        //public void ValidateLogin_StateUnderTest_ExpectedBehavior()
-        //{
-        //    // Arrange
-        //    var loginPage = new LoginPage(TODO);
+        [Fact]
+        public void UC02_FillLogin_WithUserNameCredentials_PasswordIsRequired()
+        {
+            // Arrange
+            var loginPage = new LoginPage(this.driver).OpenLoginPage();
 
-        //    // Act
-        //    loginPage.ValidateLogin();
+            // Act
+            loginPage.FillLogin("AnyUC02", "credentialsUC02").ClearUserPassword().ClickLogin().ValidateIncorrectLoginData();
 
-        //    // Assert
-        //    Assert.True(false);
-        //}
+            // Assert
+            Assert.Equal("Epic sadface: Password is required", loginPage.ErrorMsg);
+        }
 
-        //[Fact]
-        //public void IsCorrectLogin_StateUnderTest_ExpectedBehavior()
-        //{
-        //    // Arrange
-        //    var loginPage = new LoginPage(TODO);
+        [Theory]
+        [InlineData("standard_user")]
+        [InlineData("locked_out_user")]
+        [InlineData("problem_user")]
+        [InlineData("performance_glitch_user")]
+        [InlineData("error_user")]
+        [InlineData("visual_user")]
+        public void UC03_FillLogin_WithUserNameAndPasswordCredentials_IsValidUser(string userName)
+        {
+            // Arrange
+            var loginPage = new LoginPage(this.driver).OpenLoginPage();
+            string userPassword = "secret_sauce";
 
-        //    // Act
-        //    var result = loginPage.IsCorrectLogin();
+            // Act
+            loginPage.FillLogin(userName, userPassword).ClickLogin().ValidateCorrectLoginData();
 
-        //    // Assert
-        //    Assert.True(false);
-        //}
+            // Assert
+            Assert.Equal("Swag Labs", loginPage.ProductsPageSwagLabHeader);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposed)
+            {
+                return;
+            }
+
+            if (disposing)
+            {
+                driver?.Quit();
+            }
+
+            disposed = true;
+        }
     }
 }
