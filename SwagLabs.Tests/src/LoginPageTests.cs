@@ -1,5 +1,4 @@
-﻿using CoreLayer.Enum;
-using CoreLayer.WebDriver;
+﻿using CoreLayer.WebDriver;
 using FluentAssertions;
 using log4net;
 using OpenQA.Selenium;
@@ -19,7 +18,7 @@ namespace SwagLabs.Tests.src
 
         public LoginPageTests(ITestOutputHelper output)
         {
-            this.driver = BrowserDriver.CreateWebDriver(BrowserType.GoogleChrome);
+            this.driver = new ChromeDriverFactory().CreateDriver();
             this.logger = new TestLogger(output);
 
             var hierarchy = (log4net.Repository.Hierarchy.Hierarchy)LogManager.GetRepository();
