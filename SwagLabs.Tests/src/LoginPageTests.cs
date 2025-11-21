@@ -12,7 +12,7 @@ namespace SwagLabs.Tests.src
     public class LoginPageTests : IDisposable
     {
         private readonly IWebDriver driver;
-        private bool disposed;
+        private bool _isDisposed;
         private readonly TestLogger logger;
         private static readonly ILog log = LogManager.GetLogger(typeof(LoginPageTests));
 
@@ -111,17 +111,16 @@ namespace SwagLabs.Tests.src
 
         protected virtual void Dispose(bool disposing)
         {
-            if (disposed)
+            if (!this._isDisposed)
             {
-                return;
+                this._isDisposed = true;
+
+                if (disposing)
+                {
+                    driver?.Quit();
+                }
             }
 
-            if (disposing)
-            {
-                driver?.Quit();
-            }
-
-            disposed = true;
         }
     }
 }
